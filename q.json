@@ -1,0 +1,67 @@
+[
+  {
+    "template": "What is contribution of {letter} in {period}?",
+    "type": "percentContribution",
+    "variables": ["letter", "period"]
+  },
+  {
+    "template": "What is the actual numerical change from 1 to 2 for {letter}?",
+    "type": "numericalLetterChange",
+    "variables": ["letter"]
+  },
+  {
+    "template": "What is the percentile change from 1 to 2 for {letter}?",
+    "type": "percentLetterChange",
+    "variables": ["letter"]
+  },
+  {
+    "template": "What is the numerical change in total data from 1 to 2?",
+    "type": "numericalTotalChange",
+    "variables": []
+  },
+  {
+    "template": "What is the percent change in total data from 1 to 2?",
+    "type": "percentTotalChange",
+    "variables": []
+  },
+  {
+    "template": "Which letter contributed more in {period}, A or B?",
+    "type": "periodBestLetter",
+    "variables": ["period"]
+  },
+  {
+    "template": "Which letter contributed less in {period}, A or B?",
+    "type": "periodWorstLetter",
+    "variables": ["period"]
+  },
+  {
+    "template": "Which letter contributed more in overall, A or B?",
+    "type": "totalBestLetter",
+    "variables": []
+  },
+  {
+    "template": "Which letter contributed less in overall, A or B?",
+    "type": "totalWorstLetter",
+    "variables": []
+  },
+  {
+    "template": "Which letter had the larger relative change from 1 to 2?",
+    "type": "bestLetterChange",
+    "variables": []
+  },
+  {
+    "template": "Which letter had the smaller relative change from 1 to 2?",
+    "type": "worstLetterChange",
+    "variables": []
+  },
+  {
+    "template": "Which period is bigger, 1 or 2?",
+    "type": "bestPeriod",
+    "variables": []
+  },
+    {
+    "template": "Which period is smaller, 1 or 2?",
+    "type": "worstPeriod",
+    "variables": []
+  }
+]
