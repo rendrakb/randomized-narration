@@ -1,20 +1,10 @@
 const CONFIG = {
-  TABLE: {
-    NAMES: ["A", "B", "C", "D"],
-    NUMBER_COLUMNS: ["1", "2"],
-    PERCENT_COLUMNS: ["x1", "y1", "x2", "y2"],
-    MAX_VALUE: 1000,
-    MAX_PERCENT: 100,
+  DATA: {
+    LETTERS: ["A", "B"],
+    MIN_TOTAL: 100,
+    MAX_TOTAL: 1000,
+    MIN_VALUE: 1,
   },
-  HEADERS: [
-    "Name",
-    "1",
-    "X1<br>(%)",
-    "Y1<br>(%)",
-    "2",
-    "X2<br>(%)",
-    "Y2<br>(%)",
-  ],
   COLORS: {
     CORRECT: "lightgreen",
     INCORRECT: "red",
@@ -22,7 +12,7 @@ const CONFIG = {
 };
 
 const state = {
-  tableData: [],
+  narrationData: null,
   questionTemplates: [],
   currentQuestion: null,
   currentAnswer: null,
@@ -33,90 +23,131 @@ const state = {
   currentQuestionSubmitted: false,
 };
 
-class TableDataManager {
+class NarrationDataManager {
   constructor() {
-    this.data = [];
+    this.data = null;
   }
 
   randomize() {
-    this.data = CONFIG.TABLE.NAMES.map((name) => {
-      const x1 = Math.floor(Math.random() * (CONFIG.TABLE.MAX_PERCENT + 1));
-      const x2 = Math.floor(Math.random() * (CONFIG.TABLE.MAX_PERCENT + 1));
+    const total1 = Math.floor(
+      Math.random() * (CONFIG.DATA.MAX_TOTAL - CONFIG.DATA.MIN_TOTAL + 1) +
+        CONFIG.DATA.MIN_TOTAL
+    );
 
-      return {
-        name,
-        1: Math.floor(Math.random() * CONFIG.TABLE.MAX_VALUE),
-        x1,
-        y1: CONFIG.TABLE.MAX_PERCENT - x1,
-        2: Math.floor(Math.random() * CONFIG.TABLE.MAX_VALUE),
-        x2,
-        y2: CONFIG.TABLE.MAX_PERCENT - x2,
-      };
-    });
+    const A1 = Math.floor(
+      Math.random() * (total1 - 2 * CONFIG.DATA.MIN_VALUE) +
+        CONFIG.DATA.MIN_VALUE
+    );
+    const B1 = total1 - A1;
+
+    const total2 = Math.floor(
+      Math.random() * (CONFIG.DATA.MAX_TOTAL - CONFIG.DATA.MIN_TOTAL + 1) +
+        CONFIG.DATA.MIN_TOTAL
+    );
+
+    const A2 = Math.floor(
+      Math.random() * (total2 - 2 * CONFIG.DATA.MIN_VALUE) +
+        CONFIG.DATA.MIN_VALUE
+    );
+    const B2 = total2 - A2;
+
+    const totalChange = total2 - total1;
+    const totalPercentChange = total1 !== 0 ? (totalChange / total1) * 100 : 0;
+
+    const AChange = A2 - A1;
+    const APercentChange = A1 !== 0 ? (AChange / A1) * 100 : 0;
+
+    const BChange = B2 - B1;
+    const BPercentChange = B1 !== 0 ? (BChange / B1) * 100 : 0;
+
+    this.data = {
+      period1: {
+        total: total1,
+        A: A1,
+        B: B1,
+      },
+      period2: {
+        total: total2,
+        A: A2,
+        B: B2,
+      },
+      changes: {
+        total: {
+          numerical: totalChange,
+          percent: totalPercentChange,
+        },
+        A: {
+          numerical: AChange,
+          percent: APercentChange,
+        },
+        B: {
+          numerical: BChange,
+          percent: BPercentChange,
+        },
+      },
+    };
 
     return this.data;
-  }
-
-  getValue(letter, column) {
-    const row = this.data.find((r) => r.name === letter);
-    return row ? row[column] : 0;
   }
 
   getData() {
     return this.data;
   }
 
-  getAllNames() {
-    return CONFIG.TABLE.NAMES;
+  getValue(letter, period) {
+    if (!this.data) return 0;
+    return this.data[`period${period}`][letter];
+  }
+
+  getTotal(period) {
+    if (!this.data) return 0;
+    return this.data[`period${period}`].total;
+  }
+
+  getChange(subject, type) {
+    if (!this.data) return 0;
+    return this.data.changes[subject][type];
   }
 }
 
-class TableRenderer {
-  constructor(containerId) {
-    this.container = document.getElementById(containerId);
+class NarrationRenderer {
+  constructor() {
+    this.containers = {
+      narration1: document.getElementById("narration-1"),
+      narration2: document.getElementById("narration-2"),
+      narration3: document.getElementById("narration-3"),
+      narration4: document.getElementById("narration-4"),
+    };
   }
 
   render(data) {
-    const table = this.buildTable(data);
-    this.container.innerHTML = table;
-  }
+    if (!data) return;
 
-  buildTable(data) {
-    const headerRow = this.buildHeaderRow();
-    const bodyRows = this.buildBodyRows(data);
+    this.containers.narration1.innerHTML = `Total data in period 1 was <strong>${data.period1.total}</strong>`;
 
-    return `
-      <table>
-        <thead>
-          ${headerRow}
-        </thead>
-        <tbody>
-          ${bodyRows}
-        </tbody>
-      </table>
-    `;
-  }
+    const totalChange = data.changes.total.numerical;
+    const totalPercentChange = data.changes.total.percent;
+    const totalDirection = totalChange >= 0 ? "increased" : "decreased";
 
-  buildHeaderRow() {
-    const headers = CONFIG.HEADERS.map((h) => `<th>${h}</th>`).join("");
-    return `<tr>${headers}</tr>`;
-  }
+    const usePercent = Math.random() < 0.5;
+    const changeText = usePercent
+      ? `${Math.abs(totalPercentChange).toFixed(1)}%`
+      : `${Math.abs(totalChange)}`;
 
-  buildBodyRows(data) {
-    return data
-      .map((row) => {
-        const cells = `
-          <td>${row.name}</td>
-          <td>${row["1"]}</td>
-          <td>${row.x1}</td>
-          <td>${row.y1}</td>
-          <td>${row["2"]}</td>
-          <td>${row.x2}</td>
-          <td>${row.y2}</td>
-        `;
-        return `<tr>${cells}</tr>`;
-      })
-      .join("");
+    this.containers.narration2.innerHTML = `Total data in period 2 was <strong>${totalDirection}</strong> by <strong>${changeText}</strong><br>from period 1`;
+
+    this.containers.narration3.innerHTML = `Data for A in period 1 is <strong>${data.period1.A}</strong>`;
+
+    const BChange = data.changes.B.numerical;
+    const BPercentChange = data.changes.B.percent;
+    const BDirection = BChange >= 0 ? "increased" : "decreased";
+
+    const useBPercent = Math.random() < 0.5;
+    const BChangeText = useBPercent
+      ? `${Math.abs(BPercentChange).toFixed(1)}%`
+      : `${Math.abs(BChange)}`;
+
+    this.containers.narration4.innerHTML = `Data for B in period 2 is <strong>${BDirection}</strong> by <strong>${BChangeText}</strong><br>from its value in period 1`;
   }
 }
 
@@ -133,53 +164,60 @@ class QuestionGenerator {
     const vars = {};
 
     variableNames.forEach((varName) => {
-      if (varName.startsWith("letter")) {
-        vars[varName] = QuestionGenerator.pickRandom(CONFIG.TABLE.NAMES);
+      if (varName === "letter") {
+        vars[varName] = QuestionGenerator.pickRandom(CONFIG.DATA.LETTERS);
       }
-      if (varName === "number") {
-        vars[varName] = QuestionGenerator.pickRandom(
-          CONFIG.TABLE.NUMBER_COLUMNS
-        );
-      }
-      if (varName === "percent") {
-        vars[varName] = QuestionGenerator.pickRandom(
-          CONFIG.TABLE.PERCENT_COLUMNS
-        );
+      if (varName === "period") {
+        vars[varName] = QuestionGenerator.pickRandom(["1", "2"]);
       }
     });
-
-    if (vars.letterA && vars.letterB && vars.letterA === vars.letterB) {
-      vars.letterB = CONFIG.TABLE.NAMES.find((c) => c !== vars.letterA);
-    }
 
     return vars;
   }
 
   calculateAnswer(type, vars) {
+    const data = this.dataManager.getData();
+    if (!data) return null;
+
     switch (type) {
-      case "valueOfPercent":
-        return this.calculateValueOfPercent(vars);
+      case "percentContribution":
+        return this.calculatePercentContribution(vars, data);
 
-      case "highestPercentValue":
-        return this.findHighestPercentValue(vars);
+      case "numericalLetterChange":
+        return this.calculateNumericalLetterChange(vars, data);
 
-      case "lowestPercentValue":
-        return this.findLowestPercentValue(vars);
+      case "percentLetterChange":
+        return this.calculatePercentLetterChange(vars, data);
 
-      case "averageOfNumber":
-        return this.calculateAverageOfNumber(vars);
+      case "numericalTotalChange":
+        return this.calculateNumericalTotalChange(data);
 
-      case "highestTotalSum":
-        return this.findHighestTotalSum();
+      case "percentTotalChange":
+        return this.calculatePercentTotalChange(data);
 
-      case "lowestTotalSum":
-        return this.findLowestTotalSum();
+      case "periodBestLetter":
+        return this.findPeriodBestLetter(vars, data);
 
-      case "averageOfLetter":
-        return this.calculateAverageOfLetter(vars);
+      case "periodWorstLetter":
+        return this.findPeriodWorstLetter(vars, data);
 
-      case "percentageContribution":
-        return this.calculatePercentageContribution(vars);
+      case "totalBestLetter":
+        return this.findTotalBestLetter(data);
+
+      case "totalWorstLetter":
+        return this.findTotalWorstLetter(data);
+
+      case "bestLetterChange":
+        return this.findBestLetterChange(data);
+
+      case "worstLetterChange":
+        return this.findWorstLetterChange(data);
+
+      case "bestPeriod":
+        return this.findBestPeriod(data);
+
+      case "worstPeriod":
+        return this.findWorstPeriod(data);
 
       default:
         console.warn(`Unknown question type: ${type}`);
@@ -187,94 +225,86 @@ class QuestionGenerator {
     }
   }
 
-  calculateValueOfPercent(vars) {
-    const percentValue = this.dataManager.getValue(vars.letter, vars.percent);
-    const baseColumn = this.getBaseColumnForPercent(vars.percent);
-    const baseValue = this.dataManager.getValue(vars.letter, baseColumn);
-    return Math.round((percentValue / 100) * baseValue);
-  }
+  calculatePercentContribution(vars, data) {
+    const period = vars.period;
+    const letter = vars.letter;
+    const letterValue = data[`period${period}`][letter];
+    const total = data[`period${period}`].total;
 
-  getBaseColumnForPercent(percentColumn) {
-    if (percentColumn.startsWith("x") || percentColumn.startsWith("y")) {
-      return percentColumn.charAt(percentColumn.length - 1);
-    }
-    return "1";
-  }
+    if (total === 0) return "0%";
 
-  findHighestPercentValue(vars) {
-    const values = this.calculatePercentValuesForAll(vars.percent);
-    values.sort((a, b) => b.value - a.value);
-    return values[0].name;
-  }
-
-  findLowestPercentValue(vars) {
-    const values = this.calculatePercentValuesForAll(vars.percent);
-    values.sort((a, b) => a.value - b.value);
-    return values[0].name;
-  }
-
-  calculatePercentValuesForAll(percentColumn) {
-    return CONFIG.TABLE.NAMES.map((name) => {
-      const percentValue = this.dataManager.getValue(name, percentColumn);
-      const baseColumn = this.getBaseColumnForPercent(percentColumn);
-      const baseValue = this.dataManager.getValue(name, baseColumn);
-      return {
-        name,
-        value: Math.round((percentValue / 100) * baseValue),
-      };
-    });
-  }
-
-  calculateAverageOfNumber(vars) {
-    const sum = CONFIG.TABLE.NAMES.reduce(
-      (total, name) => total + this.dataManager.getValue(name, vars.number),
-      0
-    );
-    return Math.round(sum / CONFIG.TABLE.NAMES.length);
-  }
-
-  findHighestTotalSum() {
-    const totals = this.calculateTotalSums();
-    totals.sort((a, b) => b.total - a.total);
-    return totals[0].name;
-  }
-
-  findLowestTotalSum() {
-    const totals = this.calculateTotalSums();
-    totals.sort((a, b) => a.total - b.total);
-    return totals[0].name;
-  }
-
-  calculateTotalSums() {
-    return CONFIG.TABLE.NAMES.map((name) => ({
-      name,
-      total:
-        this.dataManager.getValue(name, "1") +
-        this.dataManager.getValue(name, "2"),
-    }));
-  }
-
-  calculateAverageOfLetter(vars) {
-    const val1 = this.dataManager.getValue(vars.letter, "1");
-    const val2 = this.dataManager.getValue(vars.letter, "2");
-    return Math.round((val1 + val2) / 2);
-  }
-
-  calculatePercentageContribution(vars) {
-    const letterValue = this.dataManager.getValue(vars.letter, vars.number);
-    const totalOfColumn = CONFIG.TABLE.NAMES.reduce(
-      (sum, name) => sum + this.dataManager.getValue(name, vars.number),
-      0
-    );
-
-    if (totalOfColumn === 0) return "0%";
-
-    const percentage = Math.round((letterValue / totalOfColumn) * 100);
+    const percentage = Math.round((letterValue / total) * 100);
     return `${percentage}%`;
   }
 
+  calculateNumericalLetterChange(vars, data) {
+    const letter = vars.letter;
+    return data.changes[letter].numerical;
+  }
+
+  calculatePercentLetterChange(vars, data) {
+    const letter = vars.letter;
+    const percentChange = data.changes[letter].percent;
+    return `${Math.round(percentChange)}%`;
+  }
+
+  calculateNumericalTotalChange(data) {
+    return data.changes.total.numerical;
+  }
+
+  calculatePercentTotalChange(data) {
+    const percentChange = data.changes.total.percent;
+    return `${Math.round(percentChange)}%`;
+  }
+
+  findPeriodBestLetter(vars, data) {
+    const period = vars.period;
+    const A = data[`period${period}`].A;
+    const B = data[`period${period}`].B;
+    return A > B ? "A" : "B";
+  }
+
+  findPeriodWorstLetter(vars, data) {
+    const period = vars.period;
+    const A = data[`period${period}`].A;
+    const B = data[`period${period}`].B;
+    return A < B ? "A" : "B";
+  }
+
+  findTotalBestLetter(data) {
+    const totalA = data.period1.A + data.period2.A;
+    const totalB = data.period1.B + data.period2.B;
+    return totalA > totalB ? "A" : "B";
+  }
+
+  findTotalWorstLetter(data) {
+    const totalA = data.period1.A + data.period2.A;
+    const totalB = data.period1.B + data.period2.B;
+    return totalA < totalB ? "A" : "B";
+  }
+
+  findBestLetterChange(data) {
+    const AChange = Math.abs(data.changes.A.percent);
+    const BChange = Math.abs(data.changes.B.percent);
+    return AChange > BChange ? "A" : "B";
+  }
+
+  findWorstLetterChange(data) {
+    const AChange = Math.abs(data.changes.A.percent);
+    const BChange = Math.abs(data.changes.B.percent);
+    return AChange < BChange ? "A" : "B";
+  }
+
+  findBestPeriod(data) {
+    return data.period1.total > data.period2.total ? "1" : "2";
+  }
+
+  findWorstPeriod(data) {
+    return data.period1.total < data.period2.total ? "1" : "2";
+  }
+
   generate() {
-    if (!state.questionTemplates.length || !this.dataManager.getData().length) {
+    if (!state.questionTemplates.length || !this.dataManager.getData()) {
       console.warn("Cannot generate question: missing templates or data");
       return null;
     }
@@ -376,18 +406,20 @@ class UIController {
 }
 
 class AnswerValidator {
-  static normalize(answer, expectedHasPercent = false) {
+  static normalize(answer) {
     if (answer == null) return "";
 
     let normalized = String(answer).trim().toLowerCase();
     normalized = normalized.replace(/,/g, "");
 
+    const hasPercent = normalized.includes("%");
     const num = parseFloat(normalized.replace("%", ""));
+
     if (!isNaN(num)) {
-      if (expectedHasPercent) {
-        return `${Math.abs(num)}%`;
+      if (hasPercent) {
+        return `${Math.round(Math.abs(num))}%`;
       } else {
-        return Math.abs(num);
+        return String(Math.round(Math.abs(num)));
       }
     }
 
@@ -403,8 +435,8 @@ class AnswerValidator {
 
 class QuizApp {
   constructor() {
-    this.dataManager = new TableDataManager();
-    this.tableRenderer = new TableRenderer("table");
+    this.dataManager = new NarrationDataManager();
+    this.narrationRenderer = new NarrationRenderer();
     this.questionGenerator = new QuestionGenerator(this.dataManager);
     this.uiController = new UIController();
     this.initialize();
@@ -414,7 +446,7 @@ class QuizApp {
     await this.loadQuestionTemplates();
     this.setupEventListeners();
     this.startTimers();
-    this.initializeTableAndQuestion();
+    this.initializeNarrationAndQuestion();
   }
 
   async loadQuestionTemplates() {
@@ -453,28 +485,27 @@ class QuizApp {
     setInterval(() => this.uiController.updateTotalTime(), 1000);
   }
 
-  initializeTableAndQuestion() {
-    this.randomizeTable();
+  initializeNarrationAndQuestion() {
+    this.randomizeNarration();
     this.generateNewQuestion();
   }
 
-  randomizeTable() {
+  randomizeNarration() {
     const data = this.dataManager.randomize();
-    state.tableData = data;
-    this.tableRenderer.render(data);
+    state.narrationData = data;
+    this.narrationRenderer.render(data);
   }
 
   generateNewQuestion() {
     const result = this.questionGenerator.generate();
     if (result) {
       this.uiController.displayQuestion(result.question, result.answer);
-
       state.currentQuestionSubmitted = false;
     }
   }
 
   handleRandomize() {
-    this.randomizeTable();
+    this.randomizeNarration();
     this.generateNewQuestion();
   }
 

@@ -1,1 +1,1 @@
-A little tool to train rapid table reading
+A little tool to train rapid data narration reading
