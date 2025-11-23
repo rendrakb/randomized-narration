@@ -29,26 +29,24 @@ class NarrationDataManager {
   }
 
   randomize() {
-    const total1 = Math.floor(
-      Math.random() * (CONFIG.DATA.MAX_TOTAL - CONFIG.DATA.MIN_TOTAL + 1) +
-        CONFIG.DATA.MIN_TOTAL
-    );
+    const total1Steps = Math.floor(Math.random() * 10) + 1;
+    const total1 = total1Steps * 100;
 
-    const A1 = Math.floor(
-      Math.random() * (total1 - 2 * CONFIG.DATA.MIN_VALUE) +
-        CONFIG.DATA.MIN_VALUE
-    );
+    const A1Percent = (Math.floor(Math.random() * 8) + 1) * 10;
+    const A1 = (A1Percent / 100) * total1;
     const B1 = total1 - A1;
 
-    const total2 = Math.floor(
-      Math.random() * (CONFIG.DATA.MAX_TOTAL - CONFIG.DATA.MIN_TOTAL + 1) +
-        CONFIG.DATA.MIN_TOTAL
-    );
+    let total2Steps;
+    do {
+      total2Steps = Math.floor(Math.random() * 10) + 1;
+    } while (total2Steps === total1Steps);
+    const total2 = total2Steps * 100;
 
-    const A2 = Math.floor(
-      Math.random() * (total2 - 2 * CONFIG.DATA.MIN_VALUE) +
-        CONFIG.DATA.MIN_VALUE
-    );
+    let A2Percent;
+    do {
+      A2Percent = (Math.floor(Math.random() * 8) + 1) * 10;
+    } while (A2Percent === A1Percent);
+    const A2 = (A2Percent / 100) * total2;
     const B2 = total2 - A2;
 
     const totalChange = total2 - total1;
@@ -131,10 +129,10 @@ class NarrationRenderer {
 
     const usePercent = Math.random() < 0.5;
     const changeText = usePercent
-      ? `${Math.round(Math.abs(totalPercentChange))}%`
+      ? `${Math.abs(totalPercentChange).toFixed(2)}%`
       : `${Math.abs(totalChange)}`;
 
-    this.containers.narration2.innerHTML = `Total data in period 2 was <strong>${totalDirection}</strong> by <strong>${changeText}</strong><br>from period 1`;
+    this.containers.narration2.innerHTML = `Total data in period 2 was <strong>${totalDirection}</strong> by <strong>${changeText}</strong>`;
 
     this.containers.narration3.innerHTML = `Data for A in period 1 is <strong>${data.period1.A}</strong>`;
 
@@ -144,10 +142,10 @@ class NarrationRenderer {
 
     const useBPercent = Math.random() < 0.5;
     const BChangeText = useBPercent
-      ? `${Math.round(Math.abs(BPercentChange))}%`
+      ? `${Math.abs(Math.abs(BPercentChange).toFixed(2))}%`
       : `${Math.abs(BChange)}`;
 
-    this.containers.narration4.innerHTML = `Data for B in period 2 is <strong>${BDirection}</strong> by <strong>${BChangeText}</strong> from its value in period 1`;
+    this.containers.narration4.innerHTML = `Data for B in period 2 is <strong>${BDirection}</strong> by <strong>${BChangeText}</strong> from period 1`;
   }
 }
 
@@ -233,7 +231,7 @@ class QuestionGenerator {
 
     if (total === 0) return "0%";
 
-    const percentage = Math.round((letterValue / total) * 100);
+    const percentage = (letterValue / total) * 100;
     return `${percentage}%`;
   }
 
@@ -406,20 +404,18 @@ class UIController {
 }
 
 class AnswerValidator {
-  static normalize(answer) {
+  static normalize(answer, expectedHasPercent = false) {
     if (answer == null) return "";
 
     let normalized = String(answer).trim().toLowerCase();
     normalized = normalized.replace(/,/g, "");
 
-    const hasPercent = normalized.includes("%");
     const num = parseFloat(normalized.replace("%", ""));
-
     if (!isNaN(num)) {
-      if (hasPercent) {
-        return `${Math.round(Math.abs(num))}%`;
+      if (expectedHasPercent) {
+        return `${Math.abs(num)}%`;
       } else {
-        return String(Math.round(Math.abs(num)));
+        return Math.abs(num);
       }
     }
 
