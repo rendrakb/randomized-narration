@@ -134,7 +134,7 @@ class NarrationRenderer {
       ? `${Math.round(Math.abs(totalPercentChange))}%`
       : `${Math.abs(totalChange)}`;
 
-    this.containers.narration2.innerHTML = `Total data in period 2 was <strong>${totalDirection}</strong> by <strong>${changeText}</strong>`;
+    this.containers.narration2.innerHTML = `Total data in period 2 was <strong>${totalDirection}</strong> by <strong>${changeText}</strong><br>from period 1`;
 
     this.containers.narration3.innerHTML = `Data for A in period 1 is <strong>${data.period1.A}</strong>`;
 
@@ -147,7 +147,7 @@ class NarrationRenderer {
       ? `${Math.round(Math.abs(BPercentChange))}%`
       : `${Math.abs(BChange)}`;
 
-    this.containers.narration4.innerHTML = `Data for B in period 2 is <strong>${BDirection}</strong> by <strong>${BChangeText}</strong> from period 1`;
+    this.containers.narration4.innerHTML = `Data for B in period 2 is <strong>${BDirection}</strong> by <strong>${BChangeText}</strong> from its value in period 1`;
   }
 }
 
