@@ -10,7 +10,7 @@
     "variables": ["letter"]
   },
   {
-    "template": "What is the percentile change from 1 to 2 for {letter}?",
+    "template": "What is the percentage change from 1 to 2 for {letter}?",
     "type": "percentLetterChange",
     "variables": ["letter"]
   },
